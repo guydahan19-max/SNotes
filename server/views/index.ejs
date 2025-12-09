@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile Notes App</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<style>
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(120deg, #f0f3f8, #e0e7f1);
+    margin:0;
+    padding:0;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    color:#1c1f26;
+}
+
+/* Header */
+header {
+    text-align:center;
+    padding:70px 20px 40px 20px;
+    position: relative;
+}
+header h1 {
+    font-size:3rem;
+    color:#0d6efd;
+    font-weight:800;
+    margin-bottom:10px;
+    letter-spacing:1px;
+}
+header p {
+    font-size:1.2rem;
+    color:#495057;
+}
+
+/* Profile */
+.profile-container {
+    position: relative;
+    display: inline-block;
+    margin-right:20px;
+}
+.profile-img {
+    cursor:pointer;
+    border-radius:50%;
+    width:65px;
+    height:65px;
+    object-fit:cover;
+    border:3px solid #0d6efd;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.profile-img:hover { 
+    transform: scale(1.2); 
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25); 
+}
+#profile-menu {
+    display:none;
+    position:absolute;
+    right:0;
+    top:75px;
+    background:#fff;
+    padding:12px;
+    border-radius:15px;
+    box-shadow:0 12px 35px rgba(0,0,0,0.18);
+    min-width:200px;
+    z-index:1000;
+}
+#profile-menu a {
+    display:block;
+    padding:12px;
+    text-decoration:none;
+    color:#0d6efd;
+    font-weight:500;
+    border-radius:10px;
+    transition:0.2s;
+}
+#profile-menu a:hover { background:#e7f1ff; }
+.online-dot {
+    background:#28a745;
+    border-radius:50%;
+    height:16px;
+    width:16px;
+    position:absolute;
+    bottom:0; right:0;
+    border:3px solid white;
+}
+
+/* Save All Button */
+#saveAll {
+    display: none; /* מוסתר בהתחלה */
+    position: fixed;
+    top: 20px;
+    font-weight:700;
+    padding:14px 32px;
+    border-radius:22px;
+    background: linear-gradient(145deg,#0d6efd,#0a58ca);
+    color:#fff;
+    border:none;
+    cursor:pointer;
+    box-shadow:0 16px 45px rgba(13,110,253,0.45);
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index:1000;
+}
+
+#saveAll:hover {
+    transform: scale(1.05);
+    box-shadow:0 20px 55px rgba(13,110,253,0.55);
+}
+
+/* Add Note Button */
+#showAddNote {
+    margin-bottom:30px;
+    background: linear-gradient(145deg, #0d6efd, #0a58ca);
+    color:#fff;
+    border:none;
+    padding:14px 32px;
+    border-radius:18px;
+    font-weight:700;
+    box-shadow: 0 12px 35px rgba(13,110,253,0.35);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+#showAddNote:hover {
+    transform: scale(1.06);
+    box-shadow: 0 16px 45px rgba(13,110,253,0.45);
+}
+
+/* Add Note Box */
+#addNoteBox {
+    display:none;
+    max-width:580px;
+    width:100%;
+    margin-bottom:50px;
+}
+#addNoteBox input,
+#addNoteBox textarea {
+    border-radius:18px;
+    border:1px solid #ced4da;
+    padding:14px;
+    transition: border 0.2s, box-shadow 0.2s;
+}
+#addNoteBox input:focus,
+#addNoteBox textarea:focus {
+    border-color:#0d6efd;
+    box-shadow:0 0 20px rgba(13,110,253,0.25);
+}
+#addNoteBox button {
+    border-radius:18px;
+    font-weight:700;
+    background:#0d6efd;
+    color:#fff;
+    border:none;
+    padding:14px 32px;
+    box-shadow:0 12px 35px rgba(13,110,253,0.35);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+#addNoteBox button:hover {
+    transform: scale(1.04);
+    box-shadow:0 16px 45px rgba(13,110,253,0.45);
+}
+
+/* Notes */
+#notes-container {
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:30px;
+    margin-bottom:90px;
+}
+.note {
+    width:280px;
+    min-height:160px;
+    padding:30px;
+    border-radius:28px;
+    box-shadow: 0 15px 45px rgba(0,0,0,0.1);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.3s ease;
+    cursor:pointer;
+    position:relative;
+    background:#fff;
+}
+.note h3 {
+    margin:0 0 12px 0;
+    font-size:19px;
+    color:#0d6efd;
+    font-weight:700;
+}
+.note p {
+    margin:0;
+    font-size:14px;
+    color:#495057;
+    line-height:1.6;
+}
+.note span.note-time {
+    position:absolute;
+    bottom:14px; right:18px;
+    font-size:12px;
+    color:#6c757d;
+    opacity:0;
+    transition: opacity 0.3s ease;
+}
+.note:hover span.note-time { opacity:1; }
+.note:hover { transform: translateY(-10px); box-shadow: 0 25px 65px rgba(0,0,0,0.18); }
+
+/* Note Colors */
+.note-blue { background:#e8f1ff; }
+.note-green { background:#e8fff0; }
+.note-yellow { background:#fffde8; }
+.note-pink { background:#ffe8f6; }
+
+/* Modal */
+.note-modal-overlay {
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background: rgba(0,0,0,0.65);
+    z-index:10000;
+    justify-content:center;
+    align-items:center;
+}
+.note-modal {
+    background:#fff;
+    border-radius:25px;
+    width:550px;
+    max-width:95%;
+    padding:50px;
+    position:relative;
+    box-shadow:0 20px 80px rgba(0,0,0,0.3);
+}
+.close-btn {
+    position:absolute;
+    top:15px;
+    right:20px;
+    font-size:28px;
+    cursor:pointer;
+    color:#495057;
+    transition:0.2s;
+}
+.close-btn:hover { color:#0d6efd; }
+
+/* Footer */
+footer {
+    margin-top:auto;
+    background:#0d6efd;
+    color:white;
+    text-align:center;
+    padding:50px 15px;
+    font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<% if (isAuth) { %>
+<div class="d-flex justify-content-end p-3 mb-4 align-items-center">
+    <div class="profile-container" id="profileContainer">
+        <img src="<%= user.imgurl %>" class="profile-img" id="profileImg">
+        <div class="online-dot"></div>
+        <div id="profile-menu">
+            <a href="/profile">Profile</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </div>
+</div>
+
+<button id="saveAll">Save All Changes</button>
+
+<header>
+    <h1>Welcome Back, <span><%= user.name %></span></h1>
+    <p>Manage your personal notes like a pro.</p>
+</header>
+
+<div class="d-flex flex-column align-items-center my-4">
+    <button id="showAddNote" class="btn">➕ Add Note</button>
+
+    <div id="addNoteBox">
+        <form id="addNoteForm">
+            <input type="text" id="noteTitle" class="form-control mb-2" placeholder="Note title..." required>
+            <textarea id="noteContent" class="form-control mb-2" placeholder="Note content..." required></textarea>
+            <button class="btn btn-primary">Save</button>
+        </form>
+    </div>
+
+    <div id="notes-container">
+        <% notes.forEach(note => { %>
+            <div class="note <%= note.color %>" data-id="<%= note.id %>" data-time="<%= note.time %>" style="<%= note.done ? 'opacity:0.5;' : '' %>">
+                <h3 contenteditable="true"><%= note.title %></h3>
+                <p contenteditable="true"><%= note.content %></p>
+                <span class="note-time"><%= note.time %></span>
+            </div>
+        <% }) %>
+    </div>
+</div>
+
+<div class="note-modal-overlay" id="noteModalOverlay">
+    <div class="note-modal">
+        <span class="close-btn" id="closeModal">×</span>
+        <input id="modalTitle" class="form-control mb-2">
+        <textarea id="modalContent" class="form-control mb-2" rows="4"></textarea>
+        <button class="btn btn-success" id="markDone">Mark as Done</button>
+        <button class="btn btn-danger" id="deleteNote">Delete</button>
+    </div>
+</div>
+
+<% } else { %>
+<div class="d-flex justify-content-end p-3">
+    <a href="/sign-up" class="btn btn-primary">Sign Up</a>
+</div>
+
+<header>
+    <h1>Profile Notes App</h1>
+    <p>Sign in to access your notes securely and efficiently.</p>
+</header>
+
+<div class="d-flex flex-column align-items-center my-4">
+    <div class="info-card" style="background:#fff; border-radius:20px; padding:40px; width:70%; box-shadow:0 12px 35px rgba(0,0,0,0.1); text-align:center;">
+        <h2>Keep Your Notes Organized</h2>
+        <p>Sign in to manage your private notes with a modern interface.</p>
+    </div>
+</div>
+<% } %>
+
+<footer>
+<p>🔒 Passwords protected with bcrypt</p>
+<p>© 2025 Profile Notes App</p>
+</footer>
+
+<script>
+$(document).ready(() => {
+
+    // ====== Save All Button Position ======
+    function positionSaveButton() {
+        const imgOffset = $("#profileImg").offset();
+        const windowWidth = $(window).width();
+        const btn = $("#saveAll");
+
+        if(imgOffset.left > windowWidth / 2) {
+            // תמונה מימין → Save משמאל
+            btn.css({ left: '20px', right: 'auto' });
+        } else {
+            // תמונה משמאל → Save מימין
+            btn.css({ right: '20px', left: 'auto' });
+        }
+    }
+    positionSaveButton();
+    $(window).resize(positionSaveButton);
+
+    // ===== Notes Logic =====
+    let changedNotes = {};
+    let currentNote = null;
+
+    $("#notes-container").on("input", ".note h3, .note p", function() {
+        const note = $(this).closest(".note");
+        const id = note.data("id");
+        changedNotes[id] = {
+            title: note.find("h3").text(),
+            content: note.find("p").text()
+        };
+        $("#saveAll").fadeIn(200);
+    });
+
+    $("#saveAll").click(() => {
+        const updates = [];
+        for (let id in changedNotes) updates.push({ noteId:id, ...changedNotes[id] });
+        if(updates.length===0) return;
+
+        $.ajax({
+            url:'/edit-multiple-notes',
+            type:'POST',
+            contentType:'application/json',
+            data:JSON.stringify({updates}),
+            success:()=>{ changedNotes={}; $("#saveAll").fadeOut(200); },
+            error:()=>{ alert("Error saving notes."); }
+        });
+    });
+
+    $("#profileImg").click(e=>{ e.stopPropagation(); $("#profile-menu").slideToggle(200); });
+    $(document).click(e=>{ if(!$(e.target).closest("#profile-menu").length && !$(e.target).closest("#profileImg").length) $("#profile-menu").slideUp(200); });
+
+    $("#showAddNote").click(()=>{ $("#addNoteBox").slideToggle(200); });
+
+    function getRandomColor(){ const colors=['note-blue','note-green','note-yellow','note-pink']; return colors[Math.floor(Math.random()*colors.length)]; }
+
+    $("#addNoteForm").submit(e=>{
+        e.preventDefault();
+        const title=$("#noteTitle").val();
+        const content=$("#noteContent").val();
+        const now=new Date();
+        const time=now.getHours()+":"+String(now.getMinutes()).padStart(2,"0");
+        const color=getRandomColor();
+
+        $.post("/add-note",{noteTitle:title,noteContent:content},res=>{
+            const newNote=$(`
+                <div class="note ${color}" data-id="${res.id}" data-time="${time}">
+                    <h3 contenteditable="true">${title}</h3>
+                    <p contenteditable="true">${content}</p>
+                    <span class="note-time">${time}</span>
+                </div>
+            `);
+            $("#notes-container").append(newNote);
+            $("#noteTitle").val(''); $("#noteContent").val('');
+        });
+    });
+
+    $("#notes-container").on("click",".note",function(){
+        currentNote=$(this);
+        $("#modalTitle").val(currentNote.find("h3").text());
+        $("#modalContent").val(currentNote.find("p").text());
+        $("#noteModalOverlay").css("display","flex").hide().fadeIn(200);
+    });
+
+    $("#closeModal").click(()=>{
+        if(currentNote){
+            const newTitle=$("#modalTitle").val();
+            const newContent=$("#modalContent").val();
+            currentNote.find("h3").text(newTitle);
+            currentNote.find("p").text(newContent);
+            const id=currentNote.data("id");
+            changedNotes[id]={title:newTitle,content:newContent};
+            $("#saveAll").fadeIn(200);
+            currentNote=null;
+        }
+        $("#noteModalOverlay").fadeOut(200);
+    });
+
+    $("#deleteNote").click(()=>{
+        if(!currentNote) return;
+        const noteId=currentNote.data("id");
+        $.post("/delete-note",{noteId},()=>{
+            currentNote.remove();
+            $("#noteModalOverlay").fadeOut(200);
+        });
+    });
+
+    $("#markDone").click(()=>{
+        if(!currentNote) return;
+        const noteId=currentNote.data("id");
+        $.post("/mark-done",{noteId},()=>{
+            currentNote.css("opacity","0.5");
+            $("#noteModalOverlay").fadeOut(200);
+        });
+    });
+
+    $("#noteModalOverlay").click(e=>{ if(e.target.id==="noteModalOverlay") $("#noteModalOverlay").fadeOut(200); });
+
+});
+</script>
+</body>
+</html>
